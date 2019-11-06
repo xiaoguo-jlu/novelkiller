@@ -3,4 +3,5 @@
 class Text():
     def __init__(self):
         self.id = ""
+        self.chapter_id = ""
         self.text = ""

@@ -38,30 +38,51 @@ def check_author_is_existed(author):
 
 def get_id(model):
     if isinstance(model, Category):
-        get_category_id(model)
+        return get_category_id(model)
     if isinstance(model, Author):
-        get_author_id(model)
+        return get_author_id(model)
     if isinstance(model, Novel):
-        get_novel_id(model)
+        return get_novel_id(model)
     if isinstance(model, Chapter):
-        get_chapter_id(model)
+        return get_chapter_id(model)
     if isinstance(model, Text):
-        get_text_id(model)
+        return get_text_id(model)
+    raise TypeError
         
 def get_category_id(category):
-    pass
+    query = '''
+        select id from category_t
+        where text = '%s'
+        and site = '%s'
+    '''%(category.text, category.site)
+    rows = global_session.query(query)
+    return str(rows[0].id)
 
 def get_author_id(author):
-    pass
+    query = '''
+        select id from author
+        where name = '%s'
+    '''%(author.name)
+    rows = global_session.query(query)
+    return str(rows[0].id)
 
 def get_novel_id(novel):
-    pass
+    query = '''
+        select id from novel
+        where name = '%s'
+        and author_id = '%s'
+    '''%(novel.name, novel.author_id)
+    rows = global_session.query(query)
+    return str(rows[0].id)
 
 def get_chapter_id(chapter):
-    pass
+    query = '''
+        select id from chapter
+        where novel_id = '%s'
+        and serial = '%s'
+    '''%(chapter.novel_id, chapter.serial)
+    rows = global_session.query(query)
+    return str(rows[0].id)
 
 def get_text_id(text):
     pass
-
-if __name__ == "__main__":
-    query = "select * from novel"

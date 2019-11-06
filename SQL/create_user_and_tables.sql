@@ -41,6 +41,7 @@ CREATE TABLE chapter (
 
 CREATE TABLE chapter_text (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    chapter_id int not null,
     text TEXT NOT NULL
 )  ENGINE=MYISAM CHARSET=UTF8;
 

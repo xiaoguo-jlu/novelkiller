@@ -210,12 +210,14 @@ def insert_text(text):
     query = '''
     insert into chapter_text
     (
+        chapter_id,
         text
     )
     values
-    ('%s')
+    ('%s','%s')
     '''%(
-            text.text
+            text.text,
+            text.chapter_id
         )
     global_session.query(query)
 

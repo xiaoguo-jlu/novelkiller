@@ -31,5 +31,25 @@ def test_check_is_existed():
     print("理想结果为False，实际结果为" , check_novel_is_existed(novel))
     novel.name = 'liguo'
     
+def test_get_id():
+    category = Category()
+    category.text = "玄幻"
+    category.site = "novel"
+    assert '2' == get_id(category)
+    novel = Novel()
+    novel.name = 'kkkkk'
+    novel.author_id = 2
+    assert '3' == get_id(novel)
+    author = Author()
+    author.name = 'liguo'
+    assert '1' == get_id(author)
+    chapter = Chapter()
+    chapter.serial = 783
+    chapter.novel_id = 1
+    assert '1' == get_id(chapter)
+
+    
 if __name__ == "__main__":
-    test_check_is_existed()
+    print("test begin ")
+    test_get_id()
+    print("test done")
