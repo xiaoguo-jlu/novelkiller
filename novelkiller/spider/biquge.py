@@ -6,8 +6,10 @@ import requests
 
 from spider import base
 from log import log
+from model.category import Category
 from model.novel import Novel
 from model.author import Author
+from dao.write import write_model
 
 spider_log = log.Log()
 
@@ -18,6 +20,7 @@ class Spider():
         self.log = spider_log
         self.session = requests.session()
         self.timeout = 3
+        self.history_url = []
         
     def wait_seconds(self):
         time.sleep(random.random()*2 + 1)
@@ -36,44 +39,74 @@ class Spider():
             self.log.debug("Failed to visit the page %s, error_code : %s"%(self.url,status_code))
         return self.page
 
-class BiqugeSiteSpider(Spider):
-    def __init__(self):
-        super().__init__("https://www.biquge.com.cn/")
+    def parse_page(self):
+        raise NotImplementedError
+
+    def process_data(self):
+        raise NotImplementedError
 
     def run(self):
         self.fetch_page()
         self.parse_page()
+        self.wait_seconds()
+
+class BiqugeSiteSpider(Spider):
+    def __init__(self):
+        super().__init__("https://www.biquge.com.cn")
+        self.category_list = []
 
     def parse_page(self):
-        self.page
-        
+        self.get_category_list()
+        self.process_data()
+        self.parse_category_page()
+
+    def get_category_list(self):
+        body = self.page
+        for li_label in body.find("div",class_ = "nav").find_all("li"):
+            href = li_label.find("a")['href']
+            text = li_label.find("a").text
+            category_url = self.join_url(href)
+            category = Category(site = self.url,
+                                text = text,
+                                url = category_url,
+                                short_url = href)
+            self.category_list.append(category)
+        return self.category_list
+    
     def join_url(self,url):
         if url.startswith("/"):
             return "https://www.biquge.com.cn" + url
         else:
             return "https://www.biquge.com.cn/" + url
+
+    def process_data(self):
+        for category in self.category_list:
+            write_model(category)
+
+    def parse_category_page(self):
+        for category in self.category_list:
+            category_spider = CategorySpider(category)
+            category_spider.run()
     
-    def get_category_list(self):
-        body = bs(self.responseBody)
-        urlList = []
-        for li in body.find("div",class_ = "nav").find_all("li"):
-            [urlList.append(self.join_url(url['href'])) for url in (li.find_all("a"))]
-        return urlList
-    
-    def get_urlsFromPage(self):
-        category = self.get_category_list()
-        urlList = []
-        for i in category:
-            urlList.append(i)
 
 class CategorySpider(Spider):
-    def __init__(self, site):
-        self.site = site
-        self.text = ""
-        self.url = ""
+    def __init__(self, category):
+        self.category = category
+        self.id = category.id
+        self.url = category.url
 
     def parse_page(self):
-        self.page
+        main_div = self.page.find(id = "main")
+        hotcontent = main_div.find(id = "ll")
+        newscontent = main_div.find(id = "newscontent")
+        if hotcontent:
+            pass
+        if newscontent:
+            pass
+
+    def process_data(self):
+        pass
+
             
 class NovelSpider(Spider):
     def __init__(self, novel_url, category):

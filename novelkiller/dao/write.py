@@ -4,8 +4,23 @@ from model.novel import Novel
 from model.author import Author
 from model.chapter import Chapter
 from model.text import Text
+from dao.read import get_id
 
 global_session = MysqlSessionFactory.get_session()
+
+def write_model(model):
+    if isinstance(model, Category):
+        return write_category(model)
+    if isinstance(model, Author):
+        return write_author(model)
+    if isinstance(model, Novel):
+        return write_novel(model)
+    if isinstance(model, Chapter):
+        return write_chapter(model)
+    if isinstance(model, Text):
+        return write_text(model)
+    raise TypeError
+        
 
 def write_category(category):
     if not isinstance(category, Category):
@@ -14,6 +29,7 @@ def write_category(category):
         insert_category(category)
     else:
         update_category(category)
+    return get_id(category)
     
 def insert_category(category):
     query = '''
@@ -55,6 +71,7 @@ def write_novel(novel):
         insert_novel(novel)
     else:
         update_novel(novel)
+    return get_id(novel)
     
 def insert_novel(novel):
     query = '''
@@ -130,7 +147,6 @@ def update_novel_chapter(novel):
         state = '%s'
     where id = '%s'
     '''%(
-            novel.last_update_chapter,
             novel.download_from,
             novel.last_update_chapter,
             novel.state,
@@ -145,6 +161,7 @@ def write_author(author):
         insert_author(author)
     else:
         update_author(author)
+    return get_id(author)
         
 def insert_author(author):
     query = '''
@@ -171,6 +188,7 @@ def write_chapter(chapter):
         insert_chapter(chapter)
     else:
         update_chapter(chapter)
+    return get_id(chapter)
         
 def insert_chapter(chapter):
     query = '''
