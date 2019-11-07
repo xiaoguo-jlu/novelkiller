@@ -47,7 +47,7 @@ def get_id(model):
         return get_chapter_id(model)
     if isinstance(model, Text):
         return get_text_id(model)
-    raise TypeError
+    raise TypeError("未知的类型")
         
 def get_category_id(category):
     query = '''

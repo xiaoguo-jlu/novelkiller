@@ -10,6 +10,7 @@ from model.category import Category
 from model.novel import Novel
 from model.author import Author
 from dao.write import write_model
+from dao.read import get_id
 
 spider_log = log.Log()
 
@@ -21,6 +22,8 @@ class Spider():
         self.session = requests.session()
         self.timeout = 3
         self.history_url = []
+        self.url_quene = []
+        self.data = []
         
     def wait_seconds(self):
         time.sleep(random.random()*2 + 1)
@@ -33,22 +36,39 @@ class Spider():
         }
         response = self.session.get(self.url, headers = header)
         status_code = response.status_code
+        self.history_url.append(url)
         if status_code == 200:
             self.page = bs(response.content)
         else:
             self.log.debug("Failed to visit the page %s, error_code : %s"%(self.url,status_code))
         return self.page
 
+    def fetch_next(self):
+        if not self.url_quene:
+            return
+        self.url = self.url_quene.pop(0)
+        if self.url:
+            self.fetch_page()
+            self.parse_page()
+            self.process_data()
+            self.wait_seconds()
+            self.fetch_next(self)
+
+    # 将解析出的url队列添加到self.url_quene
+    # 将解析出的数据添加到self.data
     def parse_page(self):
         raise NotImplementedError
 
+    # 处理数据，将self.data中的模型持久化写入数据库
     def process_data(self):
         raise NotImplementedError
 
     def run(self):
         self.fetch_page()
         self.parse_page()
+        self.process_data()
         self.wait_seconds()
+        self.fetch_next()
 
 class BiqugeSiteSpider(Spider):
     def __init__(self):
@@ -94,15 +114,22 @@ class CategorySpider(Spider):
         self.category = category
         self.id = category.id
         self.url = category.url
+        self.url_quene = []
 
     def parse_page(self):
-        main_div = self.page.find(id = "main")
-        hotcontent = main_div.find(id = "ll")
-        newscontent = main_div.find(id = "newscontent")
+        main_div = self.page.find("div", id = "main")
+        hotcontent = main_div.find("div", id = "ll")
+        newscontent = main_div.find("div", id = "newscontent")
         if hotcontent:
-            pass
+            for item in hotcontent.find("div", class_ = "ll").find_all("div", class_ = "item"):
+                self.url_quene.append(item.find("dt").find("a")["href"])
         if newscontent:
-            pass
+            for item_left in newscontent.find("div", class_ = "l").find_all("li"):
+                novel_url = item_left.find("span", class_ = "s3").find("a")["href"]
+                self.url_quene.append(novel_url)
+            for item_right in newscontent.find("div", class_ = "r").find_all("li"):
+                novel_url = item_right.find("span", class_ = "s2").find("a")["href"]
+                self.url_quene.append(novel_url)
 
     def process_data(self):
         pass
@@ -119,8 +146,14 @@ class NovelSpider(Spider):
     def parse_novel_data(self):
         info = self.page.find(id="info")
         p_labels = info.find_all("p")
-        self.novel.name = info.find("h1").text
         self.author.name = p_labels[0].text.split("：")[1]
+        try:
+            get_id(self.author)
+        except IndexError:
+            write_model(self.author)
+        author_id = get_id(self.author)
+        self.novel.author_id = author_id
+        self.novel.name = info.find("h1").text
         self.novel.state = p_labels[1].text.split("：")[1].split(",")[0]
         self.novel.last_update_date = p_labels[2].text.split("：")[1]
         self.novel.last_update_chapter = p_labels[3].find("a").text
@@ -128,17 +161,20 @@ class NovelSpider(Spider):
         self.novel.image_path = self.page.find(id="fmimg").find("img")['src']
         self.novel.download_from = self.url
         self.novel.last_download_chapter = 0
+        write_model(self.novel)
         
     def parse_chapter_list(self):
-        self.novel
+        for chapter_item in self.page.find("div", class_ = "box_con").find("div", class_ = "list").find_all("dd"):
+            href = chapter_item.find("a")["href"]
+            self.history_url.append(href)
         
     def parse_page(self):
         if self.page is not None:
             self.parse_novel_data()
+
+    def process_data(self):
+        pass
             
-    def run(self):
-        self.fetch_page()
-        self.parse_page()
     
 if __name__ == "__main__":
     novel_spider = NovelSpider("https://www.biquge.com.cn/book/32883/","玄幻")
