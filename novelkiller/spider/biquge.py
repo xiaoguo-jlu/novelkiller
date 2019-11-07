@@ -36,33 +36,44 @@ class Spider():
             self.log.debug("Failed to visit the page %s, error_code : %s"%(self.url,status_code))
         return self.page
 
-class Biquge(base.AbstractSpider):
+class BiqugeSiteSpider(Spider):
     def __init__(self):
-        super().__init__(["https://www.biquge.com.cn/"])
-        self.attachLog(log.Log())
+        super().__init__("https://www.biquge.com.cn/")
 
-    def parsePage(self):
-        self.log.debug("Getting data from %s"%self.currentUrl)
+    def run(self):
+        self.fetch_page()
+        self.parse_page()
+
+    def parse_page(self):
+        self.page
         
-    def joinUrl(self,url):
+    def join_url(self,url):
         if url.startswith("/"):
             return "https://www.biquge.com.cn" + url
         else:
             return "https://www.biquge.com.cn/" + url
     
-    def getCategoryUrlsFromPage(self):
-        print("getting urls ...")
+    def get_category_list(self):
         body = bs(self.responseBody)
         urlList = []
         for li in body.find("div",class_ = "nav").find_all("li"):
-            [urlList.append(self.joinUrl(url['href'])) for url in (li.find_all("a"))]
+            [urlList.append(self.join_url(url['href'])) for url in (li.find_all("a"))]
         return urlList
     
-    def getUrlsFromPage(self):
-        category = self.getCategoryUrlsFromPage()
+    def get_urlsFromPage(self):
+        category = self.get_category_list()
         urlList = []
         for i in category:
             urlList.append(i)
+
+class CategorySpider(Spider):
+    def __init__(self, site):
+        self.site = site
+        self.text = ""
+        self.url = ""
+
+    def parse_page(self):
+        self.page
             
 class NovelSpider(Spider):
     def __init__(self, novel_url, category):

@@ -60,7 +60,8 @@ create table author (
 
 CREATE TABLE download_history (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    novel INT NOT NULL,
+    novel_id INT NOT NULL,
     last_chapter INT,
+    url varchar(255),
     last_date DATETIME
 )  ENGINE=MYISAM CHARSET=UTF8;
