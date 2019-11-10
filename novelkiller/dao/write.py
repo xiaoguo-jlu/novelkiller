@@ -5,6 +5,7 @@ from model.author import Author
 from model.chapter import Chapter
 from model.text import Text
 from dao.read import get_id
+from model.download_result import DownloadResult
 
 global_session = MysqlSessionFactory.get_session()
 
@@ -19,6 +20,8 @@ def write_model(model):
         return write_chapter(model)
     if isinstance(model, Text):
         return write_text(model)
+    if isinstance(model, DownloadResult):
+        return write_download_result(model)
     raise TypeError
         
 
@@ -196,18 +199,16 @@ def insert_chapter(chapter):
     (
         name,
         novel_id,
-        text_id,
         serial,
         download_date,
         word_count
     )
     values
     ('%s','%s','%s',
-     '%s',now(),'%s')
+     now(),'%s')
     '''%(
             chapter.name,
             chapter.novel_id,
-            chapter.text_id,
             chapter.serial,
             chapter.word_count
         )
@@ -234,11 +235,23 @@ def insert_text(text):
     values
     ('%s','%s')
     '''%(
-            text.text,
-            text.chapter_id
+            text.chapter_id,
+            text.text
         )
     global_session.query(query)
 
 def update_text(text):
     pass
 
+def write_download_result(download_result):
+    query = '''
+    insert into download_result
+    (
+        url,
+        result,
+        download_date
+    )
+    values
+    ('%s','%s', now())
+    '''%(download_result.url, download_result.result)
+    global_session.query(query)

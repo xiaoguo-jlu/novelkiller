@@ -5,7 +5,6 @@ class Chapter():
         self.id = ""
         self.name = "未知"
         self.novel_id = ""
-        self.text_id = ""
         self.serial = ""
         self.download_date = ""
         self.word_count = "0"

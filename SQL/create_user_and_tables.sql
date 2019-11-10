@@ -25,6 +25,7 @@ CREATE TABLE novel (
     last_update_chapter INT,
     download_from VARCHAR(512),
     download_date DATETIME,
+    download_finished char(1) default 'N',
     last_download_chapter INT,
     state varchar(30)
 )  ENGINE=MYISAM CHARSET=UTF8;
@@ -33,7 +34,6 @@ CREATE TABLE chapter (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name VARCHAR(80) NOT NULL,
     novel_id INT NOT NULL,
-    text_id INT NOT NULL,
     serial INT NOT NULL,
     download_date DATETIME,
     word_count INT
@@ -56,6 +56,13 @@ create table author (
 	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name VARCHAR(30),
     description varchar(1024)
+) ENGINE=MYISAM CHARSET=UTF8;
+
+create table download_result (
+	id INT primary key not null auto_increment,
+    url varchar(255),
+    download_date datetime,
+    result int
 ) ENGINE=MYISAM CHARSET=UTF8;
 
 CREATE TABLE download_history (
