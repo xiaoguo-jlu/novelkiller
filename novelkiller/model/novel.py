@@ -14,4 +14,5 @@ class Novel():
         self.download_from = ""
         self.download_date = ""
         self.last_download_chapter = 0
+        self.finished = 'N'
         self.state = "" #状态字段，0代表完结，1代表连载中

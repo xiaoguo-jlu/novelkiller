@@ -86,3 +86,14 @@ def get_chapter_id(chapter):
 
 def get_text_id(text):
     pass
+
+def check_novel_download_finished(novel):
+    query = '''
+        select finished from novel
+        where name = '%s'
+        and author_id = '%s'
+    '''%(novel.name, novel.author_id)
+    rows = global_session.query(query)
+    if str(rows[0].finished) == 'Y':
+        return True
+    return  False

@@ -25,7 +25,7 @@ CREATE TABLE novel (
     last_update_chapter INT,
     download_from VARCHAR(512),
     download_date DATETIME,
-    download_finished char(1) default 'N',
+    finished char(1) default 'N',
     last_download_chapter INT,
     state varchar(30)
 )  ENGINE=MYISAM CHARSET=UTF8;
@@ -49,6 +49,7 @@ CREATE TABLE category_t (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     text VARCHAR(30),
     url VARCHAR(256),
+    finished char(1) default 'N',
     site VARCHAR(30)
 )  ENGINE=MYISAM CHARSET=UTF8;
 

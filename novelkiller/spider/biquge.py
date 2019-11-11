@@ -12,7 +12,7 @@ from model.novel import Novel
 from model.author import Author
 from model.download_result import DownloadResult
 from dao.write import write_model
-from dao.read import get_id
+from dao.read import get_id, check_novel_download_finished
 from model.chapter import Chapter
 from model.text import Text
 
@@ -24,7 +24,6 @@ class Spider():
         self.url = url
         self.page = None
         self.log = spider_log
-        self.session = requests.session()
         self.timeout = 15
         self.download_result_list = []
         self.url_quene = []
@@ -153,6 +152,7 @@ class CategorySpider(Spider):
 class NovelSpider(Spider):
     def __init__(self, novel_url, category):
         super().__init__(novel_url)
+        self.finished_flag = False
         self.category = category
         self.novel = Novel()
         self.author = Author()
@@ -176,11 +176,15 @@ class NovelSpider(Spider):
         self.novel.description = self.page.find(id="intro").find("p").text.replace("<br>","\n")
         self.novel.image_path = self.page.find(id="fmimg").find("img")['src']
         self.novel.download_from = self.url
-        write_model(self.novel)
+        try:
+            self.novel.id = get_id(self.novel)
+        except IndexError:
+            write_model(self.novel)
         self.novel.id = get_id(self.novel)
         
     def parse_chapter_list(self):
-        pool = []
+        if check_novel_download_finished(self.novel):
+            return
         serial_number = 0
         for chapter_item in self.page.find("div", id = "list").find_all("dd"):
             serial_number += 1
@@ -189,12 +193,10 @@ class NovelSpider(Spider):
             chapter_spider = ChapterSpider(url = url, 
                                            novel = self.novel, 
                                            serial_number = serial_number)
-            t = threading.Thread(target=chapter_spider.run)
-            pool.append(t)
-        for t in pool:
-            t.start()
-            t.join()
-            # chapter_spider.run()
+            chapter_spider.run()
+        self.novel.finished = 'Y'
+        self.novel.last_download_chapter = serial_number
+        write_model(self.novel)
         
     def parse_page(self):
         if self.page is not None:
