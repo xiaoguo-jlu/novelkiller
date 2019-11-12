@@ -183,6 +183,7 @@ class NovelSpider(Spider):
         self.novel.id = get_id(self.novel)
         
     def parse_chapter_list(self):
+        pool = []
         if check_novel_download_finished(self.novel):
             return
         serial_number = 0
@@ -193,7 +194,11 @@ class NovelSpider(Spider):
             chapter_spider = ChapterSpider(url = url, 
                                            novel = self.novel, 
                                            serial_number = serial_number)
-            chapter_spider.run()
+            t = threading.Thread(target = chapter_spider.run)
+            t.start()
+            pool.append(t)
+        for t in pool:
+            t.join()
         self.novel.finished = 'Y'
         self.novel.last_download_chapter = serial_number
         write_model(self.novel)
