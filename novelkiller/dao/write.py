@@ -124,7 +124,8 @@ def update_novel(novel):
         download_from = '%s',
         download_date = NOW(),
         last_download_chapter = '%s',
-        state = '%s'
+        state = '%s',
+        finished = '%s'
     where id = '%s'
     '''%(
             novel.name,
@@ -136,6 +137,7 @@ def update_novel(novel):
             novel.download_from,
             novel.last_update_chapter,
             novel.state,
+            novel.finished,
             novel.id
         )
     global_session.query(query)

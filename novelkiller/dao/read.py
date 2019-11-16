@@ -89,11 +89,10 @@ def get_text_id(text):
 
 def check_novel_download_finished(novel):
     query = '''
-        select finished from novel
+        select count(1) as num from novel
         where name = '%s'
         and author_id = '%s'
+        and finished = 'Y'
     '''%(novel.name, novel.author_id)
     rows = global_session.query(query)
-    if str(rows[0].finished) == 'Y':
-        return True
-    return  False
+    return (True if rows[0].num else False)

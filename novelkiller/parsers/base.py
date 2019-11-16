@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup as bs
+
 class Parser(object):
     def __init__(self,  page):
         if isinstance(page, bs):
@@ -12,9 +13,9 @@ class Parser(object):
         raise NotImplementedError
 
 
-class ResultList(object):
+class ResultSet(object):
     def __init__(self):
-        self.data = []
+        self.data = {}
         self.url_quene = []
 
     
